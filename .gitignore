@@ -1,0 +1,8 @@
+venv/
+*.pyc
+.python-version
+.ipynb_checkpoints/
+
+*.parq
+*.parquet
+logs/
