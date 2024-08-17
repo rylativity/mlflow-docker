@@ -11,14 +11,18 @@ services:
     volumes:
       - ./data:/data
       - ./jupyter/notebooks/:/notebooks/
-  mlflow-ui:
-    build: ./mlflow/
-    command: ["mlflow", "ui", "--host", "0.0.0.0"]
-    ports:
-      - 5000:5000
+  # mlflow-ui:
+  #   build: ./mlflow/
+  #   command: ["mlflow", "ui", "--host", "0.0.0.0"]
+  #   ports:
+  #     - 5000:5000
   mlflow-tracking-server:
     build: ./mlflow/
-    command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "8080"]
+    command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "8080", "--artifacts-destination", "s3://mlflow/artifacts/"]
+    environment:
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - AWS_ACCESS_KEY_ID=mlflowaccesskey
+      - AWS_SECRET_ACCESS_KEY=mlflowsupersecretkey
     ports:
       - 8080:8080
   # postgres:
@@ -35,25 +39,25 @@ services:
   #   healthcheck:
   #     test: ["CMD", "pg_isready","-U", "postgres"]
   #   restart: always
-  # minio:
-  #   image: quay.io/minio/minio
-  #   command: ["server", "/data", "--console-address", ":9090"]
-  #   environment:
-  #     - MINIO_ROOT_USER=minio
-  #     - MINIO_ROOT_PASSWORD=minio123
-  #     # - MINIO_IDENTITY_OPENID_CLAIM_NAME=policy
-  #     # - MINIO_BROWSER_REDIRECT_URL=http://localhost:9000/
-  #   volumes:
-  #     - minio-data:/data
-  #   ports:
-  #     - 9090:9090
-  #     - 9000:9000
-  # minio-init:
-  #   build: ./minio # MinioClient image; use it to make buckets and perform any other tasks on startup
-  #   depends_on:
-  #     - minio
-  #   volumes:
-  #     - ./data:/data
+  minio:
+    image: quay.io/minio/minio
+    command: ["server", "/data", "--console-address", ":9090"]
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio123
+      # - MINIO_IDENTITY_OPENID_CLAIM_NAME=policy
+      # - MINIO_BROWSER_REDIRECT_URL=http://localhost:9000/
+    volumes:
+      - minio-data:/data
+    ports:
+      - 9090:9090
+      - 9000:9000
+  minio-init:
+    build: ./minio # MinioClient image; use it to make buckets and perform any other tasks on startup
+    depends_on:
+      - minio
+    volumes:
+      - ./data:/data
   # keycloak:
   #   command: ["start-dev", "--import-realm", "--hostname", "http://localhost:8123", "--hostname-backchannel-dynamic", "true"]
   #   build: ./keycloak
@@ -131,10 +135,10 @@ services:
   #     - cloudbeaver-data:/opt/cloudbeaver/workspace
 
 
-# volumes:
+volumes:
 #   postgres-db:
 #   hive-data:
-#   minio-data:
+  minio-data:
 #   redis-data:
 #   dremio-data:
 #   cloudbeaver-data:
