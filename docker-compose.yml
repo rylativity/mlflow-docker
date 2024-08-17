@@ -1,0 +1,144 @@
+services:
+  jupyter:
+    build: ./jupyter/
+    environment:
+      - AWS_ENDPOINT_URL=http://minio:9000
+      - S3_BUCKET=test
+      - AWS_ACCESS_KEY_ID=jupyteraccesskey
+      - AWS_SECRET_ACCESS_KEY=jupytersupersecretkey
+    ports: 
+      - 8888:8888
+    volumes:
+      - ./data:/data
+      - ./jupyter/notebooks/:/notebooks/
+  mlflow-ui:
+    build: ./mlflow/
+    command: ["mlflow", "ui", "--host", "0.0.0.0"]
+    ports:
+      - 5000:5000
+  mlflow-tracking-server:
+    build: ./mlflow/
+    command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "8080"]
+    ports:
+      - 8080:8080
+  # postgres:
+  #   image: postgres:14
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=postgres
+  #   volumes:
+  #     - postgres-db:/var/lib/postgresql/data
+  #     - ./superset/init_supersetdb.sql:/docker-entrypoint-initdb.d/init_supersetdb.sql
+  #     - ./airflow_/init_airflowdb.sql:/docker-entrypoint-initdb.d/init_airflowdb.sql
+  #     - ./metastore/init_metastoredb.sql:/docker-entrypoint-initdb.d/init_metastoredb.sql
+  #   healthcheck:
+  #     test: ["CMD", "pg_isready","-U", "postgres"]
+  #   restart: always
+  # minio:
+  #   image: quay.io/minio/minio
+  #   command: ["server", "/data", "--console-address", ":9090"]
+  #   environment:
+  #     - MINIO_ROOT_USER=minio
+  #     - MINIO_ROOT_PASSWORD=minio123
+  #     # - MINIO_IDENTITY_OPENID_CLAIM_NAME=policy
+  #     # - MINIO_BROWSER_REDIRECT_URL=http://localhost:9000/
+  #   volumes:
+  #     - minio-data:/data
+  #   ports:
+  #     - 9090:9090
+  #     - 9000:9000
+  # minio-init:
+  #   build: ./minio # MinioClient image; use it to make buckets and perform any other tasks on startup
+  #   depends_on:
+  #     - minio
+  #   volumes:
+  #     - ./data:/data
+  # keycloak:
+  #   command: ["start-dev", "--import-realm", "--hostname", "http://localhost:8123", "--hostname-backchannel-dynamic", "true"]
+  #   build: ./keycloak
+  #   environment:
+  #     - KEYCLOAK_ADMIN=admin
+  #     - KEYCLOAK_ADMIN_PASSWORD=admin
+  #   ports:
+  #     - 8123:8080
+  #   volumes:
+  #     - keycloak-data:/opt/keycloak/data
+  
+  # dremio:
+  #   image: dremio/dremio-oss
+  #   ports:
+  #     - 9047:9047
+  #   volumes:
+  #     - dremio-data:/opt/dremio/data/
+  
+  # redis:
+  #   image: redis:latest
+  #   expose:
+  #     - 6379
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 30s
+  #     retries: 50
+  #     start_period: 30s
+  #   restart: always
+  #   volumes:
+  #     - redis-data:/data
+  
+  # mongo:
+  #   image: mongo:6.0
+  #   restart: unless-stopped
+  #   environment:
+  #     MONGO_INITDB_DATABASE: mongo
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: example
+  #   ports:
+  #     - 27017:27017
+  #   volumes:
+  #     - mongo_data:/data/db
+  
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+  #   environment:
+  #     - "ES_JAVA_OPTS=-Xms1024m -Xmx2g"
+  #     - discovery.type=single-node
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - elasticsearch_data:/usr/share/elasticsearch/data
+  #   ports:
+  #     - 9200:9200
+
+  
+  # nginx:
+  #   build: 
+  #     context: ./nginx
+  #   ports: 
+  #     - 80:80
+  #     - 443:443
+  #   healthcheck:
+  #     test: ['CMD', 'curl', '-f', 'http://localhost:80']
+  # #   restart: always
+
+  # cloudbeaver:
+  #   image: dbeaver/cloudbeaver
+  #   ports:
+  #    - 8978:8978
+  #   volumes:
+  #     - cloudbeaver-data:/opt/cloudbeaver/workspace
+
+
+# volumes:
+#   postgres-db:
+#   hive-data:
+#   minio-data:
+#   redis-data:
+#   dremio-data:
+#   cloudbeaver-data:
+#   keycloak-data:
+  # elasticsearch_data:
+  # mongo_data: 
+
